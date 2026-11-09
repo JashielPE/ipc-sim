@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
+<title>IPC sim</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { width:100%; height:100%; background:#000; overflow:hidden;
+              overscroll-behavior:none; touch-action:manipulation;
+              font-family:"Helvetica Neue",Arial,sans-serif; user-select:none; }
+  #stage { position:absolute; width:1280px; height:800px; background:#000;
+           transform-origin:top left; }
+  .pad { position:absolute; background:#fff; width:112px; height:112px; }
+  .pad svg { position:absolute; left:14px; top:14px; }
+  #cluster { position:absolute; inset:0; }
+  #tl { display:flex; gap:34px; justify-content:center; align-items:center;
+        position:absolute; left:120px; top:132px; width:1040px; height:66px; }
+  .lamp { transition:opacity .06s linear; opacity:.14; }
+  #msg { position:absolute; left:480px; top:238px; width:320px; height:290px;
+         display:flex; flex-direction:column; align-items:center; padding-top:14px; }
+  #digits { font-size:96px; font-weight:300; color:#e8ecf2; letter-spacing:-3px;
+            line-height:1; font-variant-numeric:tabular-nums; }
+  #unit { font-size:17px; color:#7d848f; margin-top:2px; letter-spacing:2px; }
+  #banner { margin-top:26px; width:300px; min-height:92px; display:flex;
+            flex-direction:column; align-items:center; justify-content:center; gap:7px; }
+  #banner.hidden { visibility:hidden; }
+  #btext { font-size:27px; font-weight:500; color:#f0b323; text-align:center; line-height:1.15; }
+  #bsub { font-size:15px; color:#9aa1ac; }
+  #banner.v2 { border:2px solid #f0b323; border-radius:8px; background:#241d08; }
+  #gt { position:absolute; left:130px; top:580px; display:flex; }
+  #gt div { width:30px; height:44px; }
+  #hud { position:absolute; right:130px; top:130px; width:340px; max-height:560px;
+         overflow:auto; background:#12161c; border:1px solid #2c333d; border-radius:10px;
+         padding:16px; color:#c4cbd4; font-size:13px; line-height:1.5; z-index:9; }
+  #hud.hidden { display:none; }
+  #hud h1 { font-size:15px; font-weight:500; color:#eef2f7; margin-bottom:4px; }
+  #hud p.hint { color:#78808c; font-size:12px; margin-bottom:12px; }
+  #hud section { border-top:1px solid #242a33; padding-top:11px; margin-top:11px; }
+  #hud label { display:flex; align-items:center; gap:9px; padding:3px 0; cursor:pointer; }
+  #hud input[type=range] { width:100%; margin:5px 0; accent-color:#5b8def; }
+  #hud button { background:#232b36; color:#dfe5ec; border:1px solid #39424f;
+                border-radius:6px; padding:7px 11px; font-size:13px; cursor:pointer;
+                margin:3px 4px 3px 0; font-family:inherit; }
+  #hud button:hover { background:#2d3744; }
+  #hud button:focus-visible, #hud input:focus-visible { outline:2px solid #5b8def; outline-offset:2px; }
+  #hud .row { display:flex; justify-content:space-between; align-items:center; }
+  #hud .num { font-variant-numeric:tabular-nums; color:#8e97a3; }
+  #hud .kbd { color:#6d7580; font-size:11px; }
+  #hud #prog { color:#5b8def; font-size:12px; min-height:18px; }
+</style>
+
+<div id="stage">
+  <div class="pad" id="p0" style="left:0;top:0"></div>
+  <div class="pad" id="p1" style="left:1168px;top:0"></div>
+  <div class="pad" id="p2" style="left:1168px;top:688px"></div>
+  <div class="pad" id="p3" style="left:0;top:688px"></div>
+
+  <div id="cluster">
+    <div id="tl"></div>
+    <svg id="gTach" width="300" height="300" style="position:absolute;left:140px;top:230px"></svg>
+    <svg id="gSpeed" width="300" height="300" style="position:absolute;left:840px;top:230px"></svg>
+    <div id="msg">
+      <div id="digits">0</div>
+      <div id="unit">km/h</div>
+      <div id="banner" class="hidden"><div id="btext"></div><div id="bsub"></div></div>
+    </div>
+  </div>
+
+  <div id="gt"></div>
+
+  <div id="hud" class="hidden">
+    <h1>Simulador IPC</h1>
+    <p class="hint">Doble toque en el fondo para ocultar o mostrar este panel.</p>
+
+    <section>
+      <div class="row"><span>Velocidad</span><span class="num" id="nSpeed">0</span></div>
+      <input type="range" id="rSpeed" min="0" max="240" step="2" value="0">
+      <div class="row"><span>RPM</span><span class="num" id="nRpm">0</span></div>
+      <input type="range" id="rRpm" min="0" max="6000" step="50" value="0">
+      <div class="row"><span>Brillo del tablero</span><span class="num" id="nDim">100</span></div>
+      <input type="range" id="rDim" min="0" max="100" step="5" value="100">
+    </section>
+
+    <section>
+      <label><input type="checkbox" id="cMil"> MIL ámbar <span class="kbd">m</span></label>
+      <label><input type="checkbox" id="cWarn"> Triángulo rojo <span class="kbd">w</span></label>
+      <label><input type="checkbox" id="cBrake"> Freno rojo <span class="kbd">b</span></label>
+      <label><input type="checkbox" id="cBeam"> Luz alta <span class="kbd">j</span></label>
+      <label><input type="checkbox" id="cLeft"> Direccional izq <span class="kbd">l</span></label>
+      <label><input type="checkbox" id="cRight"> Direccional der <span class="kbd">r</span></label>
+      <label><input type="checkbox" id="cPartial"> Brillo parcial <span class="kbd">p</span></label>
+      <label><input type="checkbox" id="cBlink" checked> Direccionales parpadean</label>
+    </section>
+
+    <section>
+      <label><input type="checkbox" id="cMsg"> Mensaje visible <span class="kbd">t</span></label>
+      <label><input type="checkbox" id="cV2"> Variante V2 <span class="kbd">v</span></label>
+      <input type="text" id="tMsg" value="MOTOR FAULT"
+             style="width:100%;background:#1b2129;border:1px solid #39424f;color:#dfe5ec;
+                    padding:6px;border-radius:5px;font-family:inherit;font-size:13px">
+    </section>
+
+    <section>
+      <div class="row"><span>Maduracion (ms)</span><span class="num" id="nDelay">5000</span></div>
+      <input type="range" id="rDelay" min="0" max="10000" step="250" value="5000">
+      <button id="bScn">Correr escenario <span class="kbd">s</span></button>
+      <button id="bCal">Barrido de agujas <span class="kbd">c</span></button>
+      <button id="bReset">Reiniciar <span class="kbd">x</span></button>
+    </section>
+
+    <section>
+      <div class="row"><span>Permanencia por estado (ms)</span><span class="num" id="nHold">1200</span></div>
+      <input type="range" id="rHold" min="400" max="4000" step="100" value="1200">
+      <button id="bData">Generar dataset <span class="kbd">d</span></button>
+      <div id="prog"></div>
+    </section>
+
+    <section>
+      <label><input type="checkbox" id="cGt" checked> Tira de ground truth <span class="kbd">g</span></label>
+      <label><input type="checkbox" id="cMk" checked> Marcadores ArUco <span class="kbd">k</span></label>
+      <button id="bLog">Descargar bitacora</button>
+      <button id="bFs">Pantalla completa <span class="kbd">f</span></button>
+    </section>
+  </div>
+</div>
+
+<script>
+const ARUCO = {
+  0:["000000","010110","001010","000110","000100","000000"],
+  1:["000000","000000","011110","010010","010100","000000"],
+  2:["000000","000110","000110","000100","011010","000000"],
+  3:["000000","010010","010010","001000","001100","000000"]
+};
+const CELL = 14;
+function drawMarker(padId, id) {
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("width", CELL*6); svg.setAttribute("height", CELL*6);
+  ARUCO[id].forEach((row, r) => [...row].forEach((bit, c) => {
+    if (bit === "1") return;
+    const rect = document.createElementNS(ns, "rect");
+    rect.setAttribute("x", c*CELL); rect.setAttribute("y", r*CELL);
+    rect.setAttribute("width", CELL); rect.setAttribute("height", CELL);
+    rect.setAttribute("fill", "#000");
+    svg.appendChild(rect);
+  }));
+  document.getElementById(padId).appendChild(svg);
+}
+[0,1,2,3].forEach((id,i) => drawMarker("p"+i, id));
+
+const LAMPS = [
+  { key:"brake", color:"#e03b32", path:"M4 22a18 18 0 0 1 36 0 18 18 0 0 1-36 0z M22 12v13 M22 29v3 M0 16c4 3 4 9 0 12 M44 16c-4 3-4 9 0 12" },
+  { key:"warn",  color:"#e03b32", path:"M22 5 L42 38 H2 Z M22 17v11 M22 31v3" },
+  { key:"mil",   color:"#f0b323", path:"M6 14h6v-5h8v5h9l6-5h6v6h4v11h-4v6h-6l-6-5h-9v5h-8v-5H6z" },
+  { key:"beam",  color:"#3d7fe0", path:"M6 9a16 16 0 0 1 0 26h8a15 15 0 0 0 0-26z M26 12h16 M26 20h16 M26 28h16" },
+  { key:"left",  color:"#3fb950", path:"M30 6 L8 22 L30 38 V28 H40 V16 H30 Z" },
+  { key:"right", color:"#3fb950", path:"M14 6 L36 22 L14 38 V28 H4 V16 H14 Z" }
+];
+const tlEl = document.getElementById("tl");
+LAMPS.forEach(l => tlEl.insertAdjacentHTML("beforeend",
+  `<svg class="lamp" id="lamp-${l.key}" width="44" height="44" viewBox="0 0 44 44">
+     <path d="${l.path}" fill="none" stroke="${l.color}" stroke-width="2.6"
+           stroke-linejoin="round" stroke-linecap="round"/></svg>`));
+
+function buildGauge(svgId, max, step, label, labelDiv) {
+  const svg = document.getElementById(svgId);
+  const cx = 150, cy = 150, R = 128;
+  const ang = f => (-120 + f*240) * Math.PI/180;
+  const pt = (f, r) => [cx + r*Math.sin(ang(f)), cy - r*Math.cos(ang(f))];
+  const [sx, sy] = pt(0, R), [ex, ey] = pt(1, R);
+  svg.insertAdjacentHTML("beforeend",
+    `<path d="M${sx} ${sy} A${R} ${R} 0 1 1 ${ex} ${ey}" fill="none" stroke="#2a3039" stroke-width="2"/>`);
+  for (let v = 0; v <= max; v += step) {
+    const f = v/max, major = (v/step) % 2 === 0;
+    const [x1,y1] = pt(f, R-2), [x2,y2] = pt(f, major ? R-18 : R-11);
+    svg.insertAdjacentHTML("beforeend",
+      `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
+             stroke="${major ? '#c3cad3' : '#5d656f'}" stroke-width="${major ? 2.6 : 1.6}"/>`);
+    if (major) {
+      const [tx,ty] = pt(f, R-38);
+      svg.insertAdjacentHTML("beforeend",
+        `<text x="${tx}" y="${ty}" fill="#9aa2ac" font-size="17" text-anchor="middle"
+               dominant-baseline="central" font-family="Arial">${v/labelDiv}</text>`);
+    }
+  }
+  svg.insertAdjacentHTML("beforeend",
+    `<text x="${cx}" y="${cy+58}" fill="#6d757f" font-size="14" text-anchor="middle"
+           font-family="Arial" letter-spacing="1.5">${label}</text>
+     <g id="${svgId}-n">
+       <polygon points="${cx-6},${cy+10} ${cx},${cy-R+24} ${cx+6},${cy+10}" fill="#e8443a"/>
+       <circle cx="${cx}" cy="${cy}" r="13" fill="#1a1f26" stroke="#4a525c" stroke-width="2"/>
+     </g>`);
+  svg._setNeedle = f => document.getElementById(svgId+"-n")
+    .setAttribute("transform", `rotate(${-120 + f*240} ${cx} ${cy})`);
+  svg._setNeedle(0);
+  return svg;
+}
+const SPEED_MAX = 240, RPM_MAX = 6000;
+const gTach  = buildGauge("gTach",  RPM_MAX,   500, "x1000 rpm", 1000);
+const gSpeed = buildGauge("gSpeed", SPEED_MAX,  20, "km/h", 1);
+
+const GT_CELLS = 34;
+const gtEl = document.getElementById("gt");
+for (let i = 0; i < GT_CELLS; i++) gtEl.insertAdjacentHTML("beforeend", "<div></div>");
+
+const S = {
+  speed:0, rpm:0, dim:100, mil:false, warn:false, brake:false,
+  left:false, right:false, beam:false, partial:false,
+  msg:false, v2:false, text:"MOTOR FAULT", stimulus:false
+};
+const LOG = [];
+let blinkPhase = true, scenarioTimer = null, calTimer = null, dataTimer = null;
+
+const logState = event => LOG.push({ t_ms: Math.round(performance.now()), event, state: {...S} });
+const bits7 = n => Math.max(0, Math.min(127, Math.round(n)))
+                     .toString(2).padStart(7, "0").split("").map(Number);
+
+function renderGT() {
+  const b = new Array(GT_CELLS).fill(0);
+  b[0] = 1;
+  b[1] = +S.stimulus; b[2] = +S.mil;  b[3] = +S.warn;  b[4] = +S.brake;
+  b[5] = +S.beam;     b[6] = +S.left; b[7] = +S.right;
+  b[8] = +S.msg;      b[9] = +S.v2;
+  bits7(S.speed/2).forEach((v,i) => b[10+i] = v);
+  bits7(S.rpm/50).forEach((v,i)  => b[17+i] = v);
+  bits7(S.dim).forEach((v,i)     => b[24+i] = v);
+  b[31] = +S.partial;
+  b[32] = b.slice(1,32).reduce((a,c) => a^c, 0);
+  b[33] = 0;
+  [...gtEl.children].forEach((c,i) => c.style.background = b[i] ? "#fff" : "#000");
+}
+
+function render() {
+  gSpeed._setNeedle(Math.min(1, S.speed/SPEED_MAX));
+  gTach._setNeedle(Math.min(1, S.rpm/RPM_MAX));
+  document.getElementById("digits").textContent = S.speed;
+
+  document.getElementById("cluster").style.filter =
+    `brightness(${(0.25 + 0.75*S.dim/100).toFixed(3)})`;
+
+  const blinkOn = document.getElementById("cBlink").checked ? blinkPhase : true;
+  const lit = { brake:S.brake, warn:S.warn, mil:S.mil, beam:S.beam,
+                left:S.left && blinkOn, right:S.right && blinkOn };
+  LAMPS.forEach(l => document.getElementById("lamp-"+l.key).style.opacity =
+    lit[l.key] ? (S.partial ? .45 : 1) : .14);
+
+  const ban = document.getElementById("banner");
+  ban.classList.toggle("hidden", !S.msg);
+  ban.classList.toggle("v2", S.v2);
+  document.getElementById("btext").textContent = S.text;
+  document.getElementById("bsub").textContent = S.v2 ? "SERVICE REQUIRED" : "";
+
+  gtEl.style.visibility = document.getElementById("cGt").checked ? "visible" : "hidden";
+  document.querySelectorAll(".pad").forEach(p =>
+    p.style.visibility = document.getElementById("cMk").checked ? "visible" : "hidden");
+
+  renderGT(); syncHud();
+}
+
+setInterval(() => { if (S.left || S.right) { blinkPhase = !blinkPhase; render(); } }, 340);
+
+function syncHud() {
+  const set = (id,v) => { const e = document.getElementById(id); if (e.checked !== v) e.checked = v; };
+  set("cMil",S.mil); set("cWarn",S.warn); set("cBrake",S.brake); set("cBeam",S.beam);
+  set("cLeft",S.left); set("cRight",S.right); set("cPartial",S.partial);
+  set("cMsg",S.msg); set("cV2",S.v2);
+  document.getElementById("rSpeed").value = S.speed;
+  document.getElementById("rRpm").value = S.rpm;
+  document.getElementById("rDim").value = S.dim;
+  document.getElementById("nSpeed").textContent = S.speed;
+  document.getElementById("nRpm").textContent = S.rpm;
+  document.getElementById("nDim").textContent = S.dim;
+}
+
+function setState(patch, event) { Object.assign(S, patch); logState(event || "setState"); render(); }
+
+function stopAll() {
+  clearTimeout(scenarioTimer); clearInterval(calTimer); clearInterval(dataTimer);
+  document.getElementById("prog").textContent = "";
+}
+
+function resetAll() {
+  stopAll();
+  Object.assign(S, { speed:0, rpm:0, dim:100, mil:false, warn:false, brake:false,
+                     left:false, right:false, beam:false, partial:false,
+                     msg:false, v2:false, stimulus:false });
+  logState("reset"); render();
+}
+
+function runScenario() {
+  clearTimeout(scenarioTimer);
+  const delay = +document.getElementById("rDelay").value;
+  setState({ stimulus:true, mil:false, msg:false, v2:false }, "stimulus_t0");
+  scenarioTimer = setTimeout(() => setState(
+    { mil:true, msg:true, v2:true, text:document.getElementById("tMsg").value },
+    "indication_shown"), delay);
+}
+
+function runCalibration() {
+  clearInterval(calTimer);
+  let step = 0; const steps = 12;
+  calTimer = setInterval(() => {
+    if (step > steps) { clearInterval(calTimer); return; }
+    setState({ speed: step*SPEED_MAX/steps, rpm: step*RPM_MAX/steps }, "cal_step_" + step);
+    step++;
+  }, 1500);
+}
+
+const LAMP_SETS = [
+  {}, { mil:true }, { warn:true }, { brake:true }, { beam:true },
+  { mil:true, warn:true },
+  { mil:true, warn:true, brake:true, beam:true },
+  { mil:true, partial:true }
+];
+function runDataset() {
+  clearInterval(dataTimer);
+  const hold = +document.getElementById("rHold").value;
+  const states = [];
+  [100, 70, 40].forEach(dim => LAMP_SETS.forEach((set, j) => states.push({
+    dim, speed: (j % 4) * 60, rpm: (j % 3) * 2000,
+    mil:false, warn:false, brake:false, beam:false, partial:false,
+    left:false, right:false, msg:false, v2:false, ...set
+  })));
+  let i = 0;
+  const prog = document.getElementById("prog");
+  dataTimer = setInterval(() => {
+    if (i >= states.length) {
+      clearInterval(dataTimer); prog.textContent = "Dataset terminado."; return;
+    }
+    prog.textContent = `Estado ${i+1} de ${states.length}`;
+    setState(states[i], "dataset_" + i);
+    i++;
+  }, hold);
+}
+
+const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
+[["cMil","mil"],["cWarn","warn"],["cBrake","brake"],["cBeam","beam"],["cLeft","left"],
+ ["cRight","right"],["cPartial","partial"],["cMsg","msg"],["cV2","v2"]].forEach(([id,key]) =>
+  on(id, "change", e => setState({ [key]: e.target.checked }, "ui_" + key)));
+["cBlink","cGt","cMk"].forEach(id => on(id, "change", render));
+on("rSpeed","input", e => setState({ speed:+e.target.value }, "ui_speed"));
+on("rRpm","input",   e => setState({ rpm:+e.target.value }, "ui_rpm"));
+on("rDim","input",   e => setState({ dim:+e.target.value }, "ui_dim"));
+on("tMsg","input",   e => setState({ text:e.target.value }, "ui_text"));
+on("rDelay","input", e => document.getElementById("nDelay").textContent = e.target.value);
+on("rHold","input",  e => document.getElementById("nHold").textContent = e.target.value);
+on("bScn","click", runScenario);
+on("bCal","click", runCalibration);
+on("bData","click", runDataset);
+on("bReset","click", resetAll);
+on("bFs","click", () => document.documentElement.requestFullscreen?.());
+on("bLog","click", () => {
+  const blob = new Blob([JSON.stringify(LOG, null, 2)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "ipc_sim_log.json"; a.click();
+});
+
+const KEYS = { m:"mil", w:"warn", b:"brake", j:"beam", l:"left", r:"right",
+               p:"partial", t:"msg", v:"v2" };
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT" && e.target.type === "text") return;
+  const k = e.key.toLowerCase();
+  if (KEYS[k]) { setState({ [KEYS[k]]: !S[KEYS[k]] }, "key_" + k); return; }
+  if (k === "s") runScenario();
+  if (k === "c") runCalibration();
+  if (k === "d") runDataset();
+  if (k === "x") resetAll();
+  if (k === "h") document.getElementById("hud").classList.toggle("hidden");
+  if (k === "g") { const c = document.getElementById("cGt"); c.checked = !c.checked; render(); }
+  if (k === "k") { const c = document.getElementById("cMk"); c.checked = !c.checked; render(); }
+  if (k === "f") document.documentElement.requestFullscreen?.();
+  if (e.key === "ArrowUp")    setState({ speed: Math.min(SPEED_MAX, S.speed + (e.shiftKey?20:2)) }, "key_speed");
+  if (e.key === "ArrowDown")  setState({ speed: Math.max(0, S.speed - (e.shiftKey?20:2)) }, "key_speed");
+  if (e.key === "ArrowRight") setState({ rpm: Math.min(RPM_MAX, S.rpm + (e.shiftKey?500:50)) }, "key_rpm");
+  if (e.key === "ArrowLeft")  setState({ rpm: Math.max(0, S.rpm - (e.shiftKey?500:50)) }, "key_rpm");
+});
+
+let lastTap = 0;
+addEventListener("pointerup", e => {
+  if (e.target.closest("#hud")) return;
+  const now = Date.now();
+  if (now - lastTap < 320) document.getElementById("hud").classList.toggle("hidden");
+  lastTap = now;
+});
+
+const qp = new URLSearchParams(location.search);
+if ([...qp].length) {
+  const num = (k,d) => qp.has(k) ? +qp.get(k) : d, flag = k => qp.get(k) === "1";
+  Object.assign(S, {
+    speed:num("speed",0), rpm:num("rpm",0), dim:num("dim",100),
+    mil:flag("mil"), warn:flag("warn"), brake:flag("brake"), beam:flag("beam"),
+    left:flag("left"), right:flag("right"), partial:flag("partial"),
+    v2: qp.get("variant") === "2", msg: qp.has("msg"), text: qp.get("msg") || "MOTOR FAULT"
+  });
+}
+
+function fit() {
+  const s = Math.min(innerWidth/1280, innerHeight/800);
+  document.getElementById("stage").style.transform =
+    `translate(${(innerWidth-1280*s)/2}px,${(innerHeight-800*s)/2}px) scale(${s})`;
+}
+addEventListener("resize", fit);
+fit(); logState("init"); render();
+
+navigator.wakeLock?.request("screen").catch(() => {});
+addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") navigator.wakeLock?.request("screen").catch(() => {});
+});
+
+window.cluster = { setState, resetAll, runScenario, runDataset,
+                   getState: () => ({...S}), getLog: () => LOG };
+
+// PWA: cache offline y arranque como app
+if ("serviceWorker" in navigator) {
+  addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
+}
+// La orientacion solo se puede fijar en pantalla completa o en modo app
+screen.orientation?.lock?.("landscape").catch(() => {});
+</script>
