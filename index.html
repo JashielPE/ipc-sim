@@ -18,24 +18,50 @@
            transform-origin:top left; }
   .pad { position:absolute; background:#fff; width:112px; height:112px; }
   .pad svg { position:absolute; left:14px; top:14px; }
-  #cluster { position:absolute; inset:0; }
-  #tl { display:flex; gap:34px; justify-content:center; align-items:center;
-        position:absolute; left:120px; top:132px; width:1040px; height:66px; }
-  .lamp { transition:opacity .06s linear; opacity:.14; }
-  #msg { position:absolute; left:480px; top:238px; width:320px; height:290px;
-         display:flex; flex-direction:column; align-items:center; padding-top:14px; }
-  #digits { font-size:96px; font-weight:300; color:#e8ecf2; letter-spacing:-3px;
+
+  /* Pantalla panoramica: marco de grosor desigual y esquinas muy redondeadas */
+  #screen { position:absolute; left:60px; top:140px; width:1160px; height:470px;
+            background:#05070a; border-radius:70px / 48px;
+            border:3px solid #1c222b; border-bottom-width:9px;
+            box-shadow:inset 0 0 70px 20px #000; overflow:hidden; }
+  #glare { position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+           opacity:0; transition:opacity .12s linear; }
+  #glare.on { opacity:1; }
+
+  #content { position:absolute; inset:0; }
+  #tl { position:absolute; left:240px; top:172px; width:800px; height:56px;
+        display:flex; gap:30px; justify-content:center; align-items:center; }
+  .lamp { opacity:.14; transition:opacity .06s linear; }
+
+  #center { position:absolute; left:460px; top:268px; width:360px; height:230px;
+            display:flex; flex-direction:column; align-items:center; }
+  #center.hidden { visibility:hidden; }
+  #digits { font-size:86px; font-weight:300; color:#e8ecf2; letter-spacing:-3px;
             line-height:1; font-variant-numeric:tabular-nums; }
-  #unit { font-size:17px; color:#7d848f; margin-top:2px; letter-spacing:2px; }
-  #banner { margin-top:26px; width:300px; min-height:92px; display:flex;
-            flex-direction:column; align-items:center; justify-content:center; gap:7px; }
-  #banner.hidden { visibility:hidden; }
-  #btext { font-size:27px; font-weight:500; color:#f0b323; text-align:center; line-height:1.15; }
-  #bsub { font-size:15px; color:#9aa1ac; }
-  #banner.v2 { border:2px solid #f0b323; border-radius:8px; background:#241d08; }
-  #gt { position:absolute; left:130px; top:580px; display:flex; }
-  #gt div { width:30px; height:44px; }
-  #hud { position:absolute; right:130px; top:130px; width:340px; max-height:560px;
+  #unit { font-size:16px; color:#7d848f; margin-top:4px; letter-spacing:2px; }
+
+  #notice { position:absolute; left:420px; top:262px; width:440px; height:240px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center;
+            gap:14px; padding:14px; }
+  #notice.hidden { visibility:hidden; }
+  #notice.v2 { border:2px solid #f0b323; border-radius:10px; background:#1d1707; }
+  #ntext { font-size:34px; font-weight:500; color:#f0b323; text-align:center; line-height:1.2; }
+  #nsub { font-size:19px; color:#9aa1ac; text-align:center; }
+
+  #redbar { position:absolute; left:60px; top:570px; width:1160px; height:24px;
+            background:#b5342c; }
+  #redbar.hidden { visibility:hidden; }
+
+  .small { position:absolute; font-size:18px; color:#848b95; letter-spacing:.5px;
+           font-variant-numeric:tabular-nums; }
+  #odo  { left:120px; top:540px; }
+  #temp { left:1000px; top:540px; width:110px; text-align:right; }
+  #gear { left:600px; top:516px; font-size:24px; color:#c3cad3; width:80px; text-align:center; }
+
+  #gt { position:absolute; left:120px; top:630px; display:flex; }
+  #gt div { width:26px; height:44px; }
+
+  #hud { position:absolute; right:150px; top:150px; width:342px; max-height:560px;
          overflow:auto; background:#12161c; border:1px solid #2c333d; border-radius:10px;
          padding:16px; color:#c4cbd4; font-size:13px; line-height:1.5; z-index:9; }
   #hud.hidden { display:none; }
@@ -44,11 +70,14 @@
   #hud section { border-top:1px solid #242a33; padding-top:11px; margin-top:11px; }
   #hud label { display:flex; align-items:center; gap:9px; padding:3px 0; cursor:pointer; }
   #hud input[type=range] { width:100%; margin:5px 0; accent-color:#5b8def; }
+  #hud select, #hud input[type=text] { width:100%; background:#1b2129; border:1px solid #39424f;
+         color:#dfe5ec; padding:6px; border-radius:5px; font-family:inherit; font-size:13px; }
   #hud button { background:#232b36; color:#dfe5ec; border:1px solid #39424f;
                 border-radius:6px; padding:7px 11px; font-size:13px; cursor:pointer;
                 margin:3px 4px 3px 0; font-family:inherit; }
   #hud button:hover { background:#2d3744; }
-  #hud button:focus-visible, #hud input:focus-visible { outline:2px solid #5b8def; outline-offset:2px; }
+  #hud button:focus-visible, #hud input:focus-visible, #hud select:focus-visible {
+                outline:2px solid #5b8def; outline-offset:2px; }
   #hud .row { display:flex; justify-content:space-between; align-items:center; }
   #hud .num { font-variant-numeric:tabular-nums; color:#8e97a3; }
   #hud .kbd { color:#6d7580; font-size:11px; }
@@ -61,15 +90,22 @@
   <div class="pad" id="p2" style="left:1168px;top:688px"></div>
   <div class="pad" id="p3" style="left:0;top:688px"></div>
 
-  <div id="cluster">
+  <div id="screen"><div id="glare"></div></div>
+
+  <div id="content">
     <div id="tl"></div>
-    <svg id="gTach" width="300" height="300" style="position:absolute;left:140px;top:230px"></svg>
-    <svg id="gSpeed" width="300" height="300" style="position:absolute;left:840px;top:230px"></svg>
-    <div id="msg">
-      <div id="digits">0</div>
-      <div id="unit">km/h</div>
-      <div id="banner" class="hidden"><div id="btext"></div><div id="bsub"></div></div>
+    <svg id="gTach" width="260" height="260" style="position:absolute;left:130px;top:262px"></svg>
+    <svg id="gSpeed" width="260" height="260" style="position:absolute;left:890px;top:262px"></svg>
+    <div id="center"><div id="digits">0</div><div id="unit">km/h</div></div>
+    <div id="notice" class="hidden">
+      <svg id="nicon" width="72" height="72" viewBox="0 0 48 48"></svg>
+      <div id="ntext"></div>
+      <div id="nsub"></div>
     </div>
+    <div id="redbar" class="hidden"></div>
+    <div class="small" id="odo">128 456 km</div>
+    <div class="small" id="gear">D</div>
+    <div class="small" id="temp">24 &deg;C</div>
   </div>
 
   <div id="gt"></div>
@@ -88,8 +124,14 @@
     </section>
 
     <section>
-      <label><input type="checkbox" id="cMil"> MIL ámbar <span class="kbd">m</span></label>
-      <label><input type="checkbox" id="cWarn"> Triángulo rojo <span class="kbd">w</span></label>
+      <label><input type="checkbox" id="cGlare"> Reflejo simulado <span class="kbd">e</span></label>
+      <div class="row"><span>Desplazamiento del ROI</span><span class="num" id="nOff">0</span></div>
+      <input type="range" id="rOff" min="0" max="15" step="1" value="0">
+    </section>
+
+    <section>
+      <label><input type="checkbox" id="cMil"> MIL ambar <span class="kbd">m</span></label>
+      <label><input type="checkbox" id="cWarn"> Triangulo rojo <span class="kbd">w</span></label>
       <label><input type="checkbox" id="cBrake"> Freno rojo <span class="kbd">b</span></label>
       <label><input type="checkbox" id="cBeam"> Luz alta <span class="kbd">j</span></label>
       <label><input type="checkbox" id="cLeft"> Direccional izq <span class="kbd">l</span></label>
@@ -99,11 +141,11 @@
     </section>
 
     <section>
-      <label><input type="checkbox" id="cMsg"> Mensaje visible <span class="kbd">t</span></label>
-      <label><input type="checkbox" id="cV2"> Variante V2 <span class="kbd">v</span></label>
-      <input type="text" id="tMsg" value="MOTOR FAULT"
-             style="width:100%;background:#1b2129;border:1px solid #39424f;color:#dfe5ec;
-                    padding:6px;border-radius:5px;font-family:inherit;font-size:13px">
+      <label><input type="checkbox" id="cNotice"> Aviso visible <span class="kbd">t</span></label>
+      <label><input type="checkbox" id="cRedbar"> Barra roja inferior <span class="kbd">n</span></label>
+      <label><input type="checkbox" id="cV2"> Variante V2 (recuadro) <span class="kbd">v</span></label>
+      <select id="sWarn"></select>
+      <button id="bCycle">Ciclo de avisos <span class="kbd">a</span></button>
     </section>
 
     <section>
@@ -131,6 +173,7 @@
 </div>
 
 <script>
+/* ---------- Marcadores ArUco, diccionario DICT_4X4_50, ids 0 a 3 ---------- */
 const ARUCO = {
   0:["000000","010110","001010","000110","000100","000000"],
   1:["000000","000000","011110","010010","010100","000000"],
@@ -154,6 +197,7 @@ function drawMarker(padId, id) {
 }
 [0,1,2,3].forEach((id,i) => drawMarker("p"+i, id));
 
+/* ---------- Telltales: iconos genericos tipo ISO 2575 ---------- */
 const LAMPS = [
   { key:"brake", color:"#e03b32", path:"M4 22a18 18 0 0 1 36 0 18 18 0 0 1-36 0z M22 12v13 M22 29v3 M0 16c4 3 4 9 0 12 M44 16c-4 3-4 9 0 12" },
   { key:"warn",  color:"#e03b32", path:"M22 5 L42 38 H2 Z M22 17v11 M22 31v3" },
@@ -164,37 +208,54 @@ const LAMPS = [
 ];
 const tlEl = document.getElementById("tl");
 LAMPS.forEach(l => tlEl.insertAdjacentHTML("beforeend",
-  `<svg class="lamp" id="lamp-${l.key}" width="44" height="44" viewBox="0 0 44 44">
+  `<svg class="lamp" id="lamp-${l.key}" width="42" height="42" viewBox="0 0 44 44">
      <path d="${l.path}" fill="none" stroke="${l.color}" stroke-width="2.6"
            stroke-linejoin="round" stroke-linecap="round"/></svg>`));
 
+/* ---------- Avisos: icono grande + texto. Terminos genericos, no del cliente ---------- */
+const WARNINGS = [
+  { id:"airbag",  text:"AIRBAG FAULT",       sub:"SERVICE REQUIRED", color:"#f0b323",
+    svg:`<circle cx="14" cy="11" r="5"/><path d="M7 41V26a7 7 0 0 1 7-7h4"/><circle cx="32" cy="28" r="11"/>` },
+  { id:"motor",   text:"MOTOR FAULT",        sub:"SERVICE REQUIRED", color:"#f0b323",
+    svg:`<path d="M5 17h7v-6h9v6h10l7-6h6v7h4v12h-4v7h-6l-7-6H21v6h-9v-6H5z"/>` },
+  { id:"brake",   text:"BRAKE SYSTEM",       sub:"STOP SAFELY",      color:"#e03b32",
+    svg:`<circle cx="24" cy="24" r="14"/><path d="M24 15v11 M24 30v3 M2 17c5 4 5 10 0 14 M46 17c-5 4-5 10 0 14"/>` },
+  { id:"charge",  text:"CHARGING SYSTEM",    sub:"",                 color:"#e03b32",
+    svg:`<rect x="6" y="14" width="36" height="22" rx="3"/><path d="M13 10v4 M33 10v4 M15 25h10 M20 20v10 M29 25h8"/>` },
+  { id:"tire",    text:"LOW TIRE PRESSURE",  sub:"",                 color:"#f0b323",
+    svg:`<path d="M8 36V22a16 16 0 0 1 32 0v14z"/><path d="M4 40h40 M24 14v10 M17 18l5 6 M31 18l-5 6"/>` }
+];
+const sWarn = document.getElementById("sWarn");
+WARNINGS.forEach((w,i) => sWarn.insertAdjacentHTML("beforeend", `<option value="${i}">${w.text}</option>`));
+
+/* ---------- Caratulas ---------- */
 function buildGauge(svgId, max, step, label, labelDiv) {
-  const svg = document.getElementById(svgId);
-  const cx = 150, cy = 150, R = 128;
+  const svg = document.getElementById(svgId), S = 260;
+  const cx = S/2, cy = S/2, R = 111;
   const ang = f => (-120 + f*240) * Math.PI/180;
   const pt = (f, r) => [cx + r*Math.sin(ang(f)), cy - r*Math.cos(ang(f))];
   const [sx, sy] = pt(0, R), [ex, ey] = pt(1, R);
   svg.insertAdjacentHTML("beforeend",
-    `<path d="M${sx} ${sy} A${R} ${R} 0 1 1 ${ex} ${ey}" fill="none" stroke="#2a3039" stroke-width="2"/>`);
+    `<path d="M${sx} ${sy} A${R} ${R} 0 1 1 ${ex} ${ey}" fill="none" stroke="#252b34" stroke-width="2"/>`);
   for (let v = 0; v <= max; v += step) {
     const f = v/max, major = (v/step) % 2 === 0;
-    const [x1,y1] = pt(f, R-2), [x2,y2] = pt(f, major ? R-18 : R-11);
+    const [x1,y1] = pt(f, R-2), [x2,y2] = pt(f, major ? R-16 : R-10);
     svg.insertAdjacentHTML("beforeend",
       `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"
-             stroke="${major ? '#c3cad3' : '#5d656f'}" stroke-width="${major ? 2.6 : 1.6}"/>`);
+             stroke="${major ? '#b9c0c9' : '#575f69'}" stroke-width="${major ? 2.4 : 1.5}"/>`);
     if (major) {
-      const [tx,ty] = pt(f, R-38);
+      const [tx,ty] = pt(f, R-34);
       svg.insertAdjacentHTML("beforeend",
-        `<text x="${tx}" y="${ty}" fill="#9aa2ac" font-size="17" text-anchor="middle"
+        `<text x="${tx}" y="${ty}" fill="#8f97a1" font-size="15" text-anchor="middle"
                dominant-baseline="central" font-family="Arial">${v/labelDiv}</text>`);
     }
   }
   svg.insertAdjacentHTML("beforeend",
-    `<text x="${cx}" y="${cy+58}" fill="#6d757f" font-size="14" text-anchor="middle"
-           font-family="Arial" letter-spacing="1.5">${label}</text>
+    `<text x="${cx}" y="${cy+52}" fill="#636b75" font-size="12" text-anchor="middle"
+           font-family="Arial" letter-spacing="1.4">${label}</text>
      <g id="${svgId}-n">
-       <polygon points="${cx-6},${cy+10} ${cx},${cy-R+24} ${cx+6},${cy+10}" fill="#e8443a"/>
-       <circle cx="${cx}" cy="${cy}" r="13" fill="#1a1f26" stroke="#4a525c" stroke-width="2"/>
+       <polygon points="${cx-5},${cy+9} ${cx},${cy-R+22} ${cx+5},${cy+9}" fill="#e8443a"/>
+       <circle cx="${cx}" cy="${cy}" r="11" fill="#141920" stroke="#444c56" stroke-width="2"/>
      </g>`);
   svg._setNeedle = f => document.getElementById(svgId+"-n")
     .setAttribute("transform", `rotate(${-120 + f*240} ${cx} ${cy})`);
@@ -205,34 +266,45 @@ const SPEED_MAX = 240, RPM_MAX = 6000;
 const gTach  = buildGauge("gTach",  RPM_MAX,   500, "x1000 rpm", 1000);
 const gSpeed = buildGauge("gSpeed", SPEED_MAX,  20, "km/h", 1);
 
-const GT_CELLS = 34;
+/* ---------- Reflejo simulado: fuerte en las orillas, limpio al centro ---------- */
+document.getElementById("glare").style.background =
+  "radial-gradient(ellipse 128% 92% at 50% 50%, rgba(255,255,255,0) 52%, rgba(255,255,255,.20) 100%)," +
+  "linear-gradient(104deg, rgba(255,255,255,0) 18%, rgba(255,255,255,.09) 33%, rgba(255,255,255,0) 44%)";
+
+/* ---------- Desplazamiento del contenido (ROI corrido) ---------- */
+const OFFSETS = [[0,0],[-14,-9],[-14,0],[-14,9],[-7,-9],[-7,9],[0,-9],[0,9],
+                 [7,-9],[7,9],[14,-9],[14,0],[14,9],[-7,0],[7,0],[0,14]];
+
+/* ---------- Tira de ground truth ---------- */
+const GT_CELLS = 40;
 const gtEl = document.getElementById("gt");
 for (let i = 0; i < GT_CELLS; i++) gtEl.insertAdjacentHTML("beforeend", "<div></div>");
 
 const S = {
-  speed:0, rpm:0, dim:100, mil:false, warn:false, brake:false,
-  left:false, right:false, beam:false, partial:false,
-  msg:false, v2:false, text:"MOTOR FAULT", stimulus:false
+  speed:0, rpm:0, dim:100, glare:false, off:0,
+  mil:false, warn:false, brake:false, left:false, right:false, beam:false, partial:false,
+  notice:false, redbar:false, v2:false, wi:0, stimulus:false
 };
 const LOG = [];
-let blinkPhase = true, scenarioTimer = null, calTimer = null, dataTimer = null;
+let blinkPhase = true, scenarioTimer = null, calTimer = null, dataTimer = null, cycleTimer = null;
 
-const logState = event => LOG.push({ t_ms: Math.round(performance.now()), event, state: {...S} });
-const bits7 = n => Math.max(0, Math.min(127, Math.round(n)))
-                     .toString(2).padStart(7, "0").split("").map(Number);
+const logState = e => LOG.push({ t_ms: Math.round(performance.now()), event:e, state:{...S} });
+const bits = (n, w) => Math.max(0, Math.min(2**w - 1, Math.round(n)))
+                         .toString(2).padStart(w, "0").split("").map(Number);
 
 function renderGT() {
   const b = new Array(GT_CELLS).fill(0);
   b[0] = 1;
-  b[1] = +S.stimulus; b[2] = +S.mil;  b[3] = +S.warn;  b[4] = +S.brake;
-  b[5] = +S.beam;     b[6] = +S.left; b[7] = +S.right;
-  b[8] = +S.msg;      b[9] = +S.v2;
-  bits7(S.speed/2).forEach((v,i) => b[10+i] = v);
-  bits7(S.rpm/50).forEach((v,i)  => b[17+i] = v);
-  bits7(S.dim).forEach((v,i)     => b[24+i] = v);
-  b[31] = +S.partial;
-  b[32] = b.slice(1,32).reduce((a,c) => a^c, 0);
-  b[33] = 0;
+  b[1] = +S.stimulus; b[2]  = +S.mil;    b[3]  = +S.warn;   b[4] = +S.brake;
+  b[5] = +S.beam;     b[6]  = +S.left;   b[7]  = +S.right;
+  b[8] = +S.notice;   b[9]  = +S.v2;     b[10] = +S.redbar;
+  b[11]= +S.partial;  b[12] = +S.glare;
+  bits(S.speed/2, 7).forEach((v,i) => b[13+i] = v);
+  bits(S.rpm/50, 7).forEach((v,i)  => b[20+i] = v);
+  bits(S.dim, 7).forEach((v,i)     => b[27+i] = v);
+  bits(S.off, 4).forEach((v,i)     => b[34+i] = v);
+  b[38] = b.slice(1,38).reduce((a,c) => a^c, 0);
+  b[39] = 0;
   [...gtEl.children].forEach((c,i) => c.style.background = b[i] ? "#fff" : "#000");
 }
 
@@ -241,8 +313,14 @@ function render() {
   gTach._setNeedle(Math.min(1, S.rpm/RPM_MAX));
   document.getElementById("digits").textContent = S.speed;
 
-  document.getElementById("cluster").style.filter =
-    `brightness(${(0.25 + 0.75*S.dim/100).toFixed(3)})`;
+  // El brillo afecta la pantalla y su contenido, nunca a los marcadores ni a la tira
+  const br = `brightness(${(0.25 + 0.75*S.dim/100).toFixed(3)})`;
+  document.getElementById("content").style.filter = br;
+  document.getElementById("screen").style.filter = br;
+
+  const [dx, dy] = OFFSETS[S.off];
+  document.getElementById("content").style.transform = `translate(${dx}px,${dy}px)`;
+  document.getElementById("glare").classList.toggle("on", S.glare);
 
   const blinkOn = document.getElementById("cBlink").checked ? blinkPhase : true;
   const lit = { brake:S.brake, warn:S.warn, mil:S.mil, beam:S.beam,
@@ -250,11 +328,18 @@ function render() {
   LAMPS.forEach(l => document.getElementById("lamp-"+l.key).style.opacity =
     lit[l.key] ? (S.partial ? .45 : 1) : .14);
 
-  const ban = document.getElementById("banner");
-  ban.classList.toggle("hidden", !S.msg);
-  ban.classList.toggle("v2", S.v2);
-  document.getElementById("btext").textContent = S.text;
-  document.getElementById("bsub").textContent = S.v2 ? "SERVICE REQUIRED" : "";
+  const w = WARNINGS[S.wi];
+  const nt = document.getElementById("notice");
+  nt.classList.toggle("hidden", !S.notice);
+  nt.classList.toggle("v2", S.v2);
+  document.getElementById("nicon").innerHTML =
+    `<g fill="none" stroke="${w.color}" stroke-width="2.6"
+        stroke-linejoin="round" stroke-linecap="round">${w.svg}</g>`;
+  document.getElementById("ntext").textContent = w.text;
+  document.getElementById("ntext").style.color = w.color;
+  document.getElementById("nsub").textContent = w.sub;
+  document.getElementById("center").classList.toggle("hidden", S.notice);
+  document.getElementById("redbar").classList.toggle("hidden", !S.redbar);
 
   gtEl.style.visibility = document.getElementById("cGt").checked ? "visible" : "hidden";
   document.querySelectorAll(".pad").forEach(p =>
@@ -269,37 +354,55 @@ function syncHud() {
   const set = (id,v) => { const e = document.getElementById(id); if (e.checked !== v) e.checked = v; };
   set("cMil",S.mil); set("cWarn",S.warn); set("cBrake",S.brake); set("cBeam",S.beam);
   set("cLeft",S.left); set("cRight",S.right); set("cPartial",S.partial);
-  set("cMsg",S.msg); set("cV2",S.v2);
+  set("cNotice",S.notice); set("cRedbar",S.redbar); set("cV2",S.v2); set("cGlare",S.glare);
   document.getElementById("rSpeed").value = S.speed;
   document.getElementById("rRpm").value = S.rpm;
   document.getElementById("rDim").value = S.dim;
+  document.getElementById("rOff").value = S.off;
+  document.getElementById("sWarn").value = S.wi;
   document.getElementById("nSpeed").textContent = S.speed;
   document.getElementById("nRpm").textContent = S.rpm;
   document.getElementById("nDim").textContent = S.dim;
+  document.getElementById("nOff").textContent = S.off + " (" + OFFSETS[S.off].join(", ") + ")";
 }
 
 function setState(patch, event) { Object.assign(S, patch); logState(event || "setState"); render(); }
 
 function stopAll() {
-  clearTimeout(scenarioTimer); clearInterval(calTimer); clearInterval(dataTimer);
+  clearTimeout(scenarioTimer); clearInterval(calTimer);
+  clearInterval(dataTimer); clearInterval(cycleTimer);
   document.getElementById("prog").textContent = "";
 }
 
 function resetAll() {
   stopAll();
-  Object.assign(S, { speed:0, rpm:0, dim:100, mil:false, warn:false, brake:false,
-                     left:false, right:false, beam:false, partial:false,
-                     msg:false, v2:false, stimulus:false });
+  Object.assign(S, { speed:0, rpm:0, dim:100, glare:false, off:0,
+    mil:false, warn:false, brake:false, left:false, right:false, beam:false, partial:false,
+    notice:false, redbar:false, v2:false, stimulus:false });
   logState("reset"); render();
 }
 
+/* Escenario: estimulo, luego maduracion, luego la indicacion completa */
 function runScenario() {
   clearTimeout(scenarioTimer);
   const delay = +document.getElementById("rDelay").value;
-  setState({ stimulus:true, mil:false, msg:false, v2:false }, "stimulus_t0");
+  setState({ stimulus:true, mil:false, notice:false, redbar:false, v2:false }, "stimulus_t0");
   scenarioTimer = setTimeout(() => setState(
-    { mil:true, msg:true, v2:true, text:document.getElementById("tMsg").value },
-    "indication_shown"), delay);
+    { mil:true, notice:true, redbar:true, v2:true }, "indication_shown"), delay);
+}
+
+/* Avisos que aparecen y desaparecen, recorriendo la lista */
+function runCycle() {
+  clearInterval(cycleTimer);
+  let i = 0, on = false;
+  const step = () => {
+    on = !on;
+    if (on) { setState({ wi: i % WARNINGS.length, notice:true,
+                         redbar: WARNINGS[i % WARNINGS.length].color === "#e03b32" }, "notice_on"); }
+    else    { setState({ notice:false, redbar:false }, "notice_off"); i++; }
+    cycleTimer = setTimeout(step, on ? 3000 : 1800);
+  };
+  step();
 }
 
 function runCalibration() {
@@ -312,21 +415,27 @@ function runCalibration() {
   }, 1500);
 }
 
+/* Dataset: brillo x reflejo x desplazamiento x combinaciones de telltales y avisos */
 const LAMP_SETS = [
   {}, { mil:true }, { warn:true }, { brake:true }, { beam:true },
   { mil:true, warn:true },
   { mil:true, warn:true, brake:true, beam:true },
-  { mil:true, partial:true }
+  { mil:true, partial:true },
+  { notice:true, wi:0 },
+  { notice:true, wi:2, redbar:true }
 ];
 function runDataset() {
   clearInterval(dataTimer);
   const hold = +document.getElementById("rHold").value;
   const states = [];
-  [100, 70, 40].forEach(dim => LAMP_SETS.forEach((set, j) => states.push({
-    dim, speed: (j % 4) * 60, rpm: (j % 3) * 2000,
-    mil:false, warn:false, brake:false, beam:false, partial:false,
-    left:false, right:false, msg:false, v2:false, ...set
-  })));
+  [100, 65, 35].forEach(dim =>
+    [false, true].forEach(glare =>
+      LAMP_SETS.forEach((set, j) => states.push({
+        dim, glare, off: (states.length * 7) % OFFSETS.length,
+        speed: (j % 4) * 60, rpm: (j % 3) * 2000,
+        mil:false, warn:false, brake:false, beam:false, partial:false,
+        left:false, right:false, notice:false, redbar:false, v2:false, ...set
+      }))));
   let i = 0;
   const prog = document.getElementById("prog");
   dataTimer = setInterval(() => {
@@ -339,18 +448,22 @@ function runDataset() {
   }, hold);
 }
 
+/* ---------- Controles ---------- */
 const on = (id, ev, fn) => document.getElementById(id).addEventListener(ev, fn);
 [["cMil","mil"],["cWarn","warn"],["cBrake","brake"],["cBeam","beam"],["cLeft","left"],
- ["cRight","right"],["cPartial","partial"],["cMsg","msg"],["cV2","v2"]].forEach(([id,key]) =>
+ ["cRight","right"],["cPartial","partial"],["cNotice","notice"],["cRedbar","redbar"],
+ ["cV2","v2"],["cGlare","glare"]].forEach(([id,key]) =>
   on(id, "change", e => setState({ [key]: e.target.checked }, "ui_" + key)));
 ["cBlink","cGt","cMk"].forEach(id => on(id, "change", render));
 on("rSpeed","input", e => setState({ speed:+e.target.value }, "ui_speed"));
 on("rRpm","input",   e => setState({ rpm:+e.target.value }, "ui_rpm"));
 on("rDim","input",   e => setState({ dim:+e.target.value }, "ui_dim"));
-on("tMsg","input",   e => setState({ text:e.target.value }, "ui_text"));
+on("rOff","input",   e => setState({ off:+e.target.value }, "ui_off"));
+on("sWarn","change", e => setState({ wi:+e.target.value }, "ui_warning"));
 on("rDelay","input", e => document.getElementById("nDelay").textContent = e.target.value);
 on("rHold","input",  e => document.getElementById("nHold").textContent = e.target.value);
 on("bScn","click", runScenario);
+on("bCycle","click", runCycle);
 on("bCal","click", runCalibration);
 on("bData","click", runDataset);
 on("bReset","click", resetAll);
@@ -362,23 +475,25 @@ on("bLog","click", () => {
 });
 
 const KEYS = { m:"mil", w:"warn", b:"brake", j:"beam", l:"left", r:"right",
-               p:"partial", t:"msg", v:"v2" };
-addEventListener("keydown", e => {
-  if (e.target.tagName === "INPUT" && e.target.type === "text") return;
-  const k = e.key.toLowerCase();
+               p:"partial", t:"notice", n:"redbar", v:"v2", e:"glare" };
+addEventListener("keydown", ev => {
+  if (ev.target.tagName === "INPUT" && ev.target.type === "text") return;
+  const k = ev.key.toLowerCase();
   if (KEYS[k]) { setState({ [KEYS[k]]: !S[KEYS[k]] }, "key_" + k); return; }
   if (k === "s") runScenario();
+  if (k === "a") runCycle();
   if (k === "c") runCalibration();
   if (k === "d") runDataset();
   if (k === "x") resetAll();
+  if (k === "o") setState({ off: (S.off + 1) % OFFSETS.length }, "key_off");
   if (k === "h") document.getElementById("hud").classList.toggle("hidden");
   if (k === "g") { const c = document.getElementById("cGt"); c.checked = !c.checked; render(); }
   if (k === "k") { const c = document.getElementById("cMk"); c.checked = !c.checked; render(); }
   if (k === "f") document.documentElement.requestFullscreen?.();
-  if (e.key === "ArrowUp")    setState({ speed: Math.min(SPEED_MAX, S.speed + (e.shiftKey?20:2)) }, "key_speed");
-  if (e.key === "ArrowDown")  setState({ speed: Math.max(0, S.speed - (e.shiftKey?20:2)) }, "key_speed");
-  if (e.key === "ArrowRight") setState({ rpm: Math.min(RPM_MAX, S.rpm + (e.shiftKey?500:50)) }, "key_rpm");
-  if (e.key === "ArrowLeft")  setState({ rpm: Math.max(0, S.rpm - (e.shiftKey?500:50)) }, "key_rpm");
+  if (ev.key === "ArrowUp")    setState({ speed: Math.min(SPEED_MAX, S.speed + (ev.shiftKey?20:2)) }, "key_speed");
+  if (ev.key === "ArrowDown")  setState({ speed: Math.max(0, S.speed - (ev.shiftKey?20:2)) }, "key_speed");
+  if (ev.key === "ArrowRight") setState({ rpm: Math.min(RPM_MAX, S.rpm + (ev.shiftKey?500:50)) }, "key_rpm");
+  if (ev.key === "ArrowLeft")  setState({ rpm: Math.max(0, S.rpm - (ev.shiftKey?500:50)) }, "key_rpm");
 });
 
 let lastTap = 0;
@@ -393,10 +508,11 @@ const qp = new URLSearchParams(location.search);
 if ([...qp].length) {
   const num = (k,d) => qp.has(k) ? +qp.get(k) : d, flag = k => qp.get(k) === "1";
   Object.assign(S, {
-    speed:num("speed",0), rpm:num("rpm",0), dim:num("dim",100),
-    mil:flag("mil"), warn:flag("warn"), brake:flag("brake"), beam:flag("beam"),
-    left:flag("left"), right:flag("right"), partial:flag("partial"),
-    v2: qp.get("variant") === "2", msg: qp.has("msg"), text: qp.get("msg") || "MOTOR FAULT"
+    speed:num("speed",0), rpm:num("rpm",0), dim:num("dim",100), off:num("off",0),
+    glare:flag("glare"), mil:flag("mil"), warn:flag("warn"), brake:flag("brake"),
+    beam:flag("beam"), left:flag("left"), right:flag("right"), partial:flag("partial"),
+    notice:flag("notice"), redbar:flag("redbar"), v2: qp.get("variant") === "2",
+    wi:num("warning",0)
   });
 }
 
@@ -413,13 +529,11 @@ addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") navigator.wakeLock?.request("screen").catch(() => {});
 });
 
-window.cluster = { setState, resetAll, runScenario, runDataset,
+window.cluster = { setState, resetAll, runScenario, runCycle, runDataset,
                    getState: () => ({...S}), getLog: () => LOG };
 
-// PWA: cache offline y arranque como app
 if ("serviceWorker" in navigator) {
   addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
-// La orientacion solo se puede fijar en pantalla completa o en modo app
 screen.orientation?.lock?.("landscape").catch(() => {});
 </script>
